@@ -30,8 +30,72 @@ const TodoItemRecord = Record({
   done: false
 });
 
-interface TodoItemDataPrams {
+interface TodoItemDataParams {
   id?: number;
   text?: string;
   done?: boolean;
 }
+
+export class TodoItemData extends TodoItemRecord {
+  static autoId = 0;
+  id: number;
+  text: string;
+  done: boolean;
+
+  constructor(params?: TodoItemDataParams) {
+    const id = TodoItemData.autoId;
+    if (params) {
+      super({
+        ...params,
+        id,
+      });
+    } else {
+      super({ id });
+    }
+    TodoItemData.autoId = id + 1;
+  }
+}
+
+const TodoStateRecord = Record({
+  todoItems: List(),
+  input: ''
+});
+
+export class TodosState extends TodoStateRecord {
+  todoItems: List<TodoItemData>;
+  input: string;
+}
+
+const initialState = new TodosState();
+
+// <TodosState> state... <- type casting(MAP -> TodosState)
+export default handleActions<TodosState, any>(
+  {
+    [CREATE]: (state, action: Action<CreatePayload>): TodosState => {
+      return <TodosState> state.withMutations(
+        s => {
+          s.set('input', '')
+          .update('todoItems', (todoItems: List<TodoItemData>) => todoItems.push(
+            new TodoItemData({ text: action.payload })
+          ));
+        }
+      );
+    },
+    [REMOVE]: (state, action: Action<RemovePayload>): TodosState => {
+      return <TodosState> state.update(
+        'todoItems',
+        (todoItems: List<TodoItemData>) => todoItems.filter(
+          t => t ? t.id !== action.payload : false
+        )
+      );
+    },
+    [TOGGLE]: (state, action: Action<TogglePayload>): TodosState => {
+      const index = state.todoItems.findIndex(t => t ? t.id === action.payload : false);
+      return <TodosState> state.updateIn(['todoItems', index, 'done'], done => !done);
+    },
+    [CHANGE_INPUT]: (state, action: Action<ChangeInputPayload>): TodosState => {
+      return <TodosState> state.set('input', action.payload);
+    },
+  },
+  initialState,
+);

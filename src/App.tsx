@@ -1,7 +1,7 @@
 import * as React from 'react';
 import Profile from './components/Profile';
 import CounterContainer from './containers/CounterContainer';
-import TodoList from './components/TodoList';
+import TodoListContainer from './containers/TodoListContainer';
 
 class App extends React.Component {
   render() {
@@ -12,7 +12,7 @@ class App extends React.Component {
           job="front-end"
         />
         <CounterContainer />
-        <TodoList />
+        <TodoListContainer />
       </div>
     );
   }
